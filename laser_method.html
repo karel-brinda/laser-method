@@ -1,0 +1,364 @@
+<html>
+
+<head>
+	<title>&ldquo;Laser method&rdquo; on-line</title>
+
+	<style type="text/css">
+		.tab2 td	{width:20px;height:20px;text-align:center;vertical-align:middle}
+		.diag {background-color:black;color:white;font-weight:bold;}
+		.pod	{font-weight:bold;}
+		.nad	{color:#777777;}
+		.lev	{font-weight:bold;font-size:120%;font-family: Courier New, Courier, monotype;}
+		.laserOn	{background-color:#ffaaaa;font-weight:bold;}
+		.laserOff	{background-color:#aaaaff;font-weight:bold;}
+		.zak	{background-color:red;font-weight:bold;}
+		.zak_zac	{background-color:#33aa33;color:white;font-weight:bold}
+		
+		.inp1	{font-family: Courier New, Courier, monotype;width:800px;}
+		.inp2	{font-family: Courier New, Courier, monotype;width:60px;}
+		
+		.form_tab	{width:100%;}
+		.form_tab td	{text-align:left;}
+		a,a:hover,a:visited,a:active	{color: blue}
+		.form_col1 {width: 50px}
+		.form_col2 {width: 50px!important}
+		.form_col3 {width: 200px}
+		.latexsource {font-family: monospace;font-size:90%}
+	</style>
+
+	<script language="JavaScript">
+		function getUrlVars()
+		{
+			var vars = [], hash;
+			var add = window.location.href;
+			add = add.slice(add.indexOf('?') + 1);
+			
+			if(add.lastIndexOf('#')>-1){
+				add = add.slice(0,add.lastIndexOf('#'));
+			}
+			var hashes = add.split('&');
+			
+			for(var i = 0; i < hashes.length; i++)
+			{
+				hash = hashes[i].split('=');
+				vars.push(hash[0]);
+				vars[hash[0]] = decodeURIComponent(hash[1]);
+			}
+			
+			return vars;
+		}
+		
+		var latex = getUrlVars()["latex"];
+		if(latex==undefined){
+			latex=0;
+		}	
+
+		var m = parseInt(getUrlVars()["m"]);
+		var seed = getUrlVars()["seed"];
+		
+		if(isNaN(m)){
+			m=17;
+		}
+		
+		if(seed==undefined){
+			seed='##-#--#--#--';
+		}	
+			
+		var s = seed.length;
+		var l = m - s;  
+		
+		function createArray () {
+			var arr = new Array(m+l);
+			for (var i = 0; i < m+l; i++) {
+				arr[i] = new Array(m+l);
+			}
+
+			for (var i = 0; i < m+l; i++) {
+				for (var j = 0; j < m+l; j++) {
+					arr[i][j]=1;
+				}
+			}
+			
+			for (var i=0;i<seed.length;i++){
+				if (seed.charAt(i)=='#'){
+					for (var j = 0; j < m+l; j++) {
+						arr[i+l][j] = 0;
+						arr[j][i+l] = 0;
+					}
+				}
+			}
+			
+			return arr;
+		}
+		
+		function createArrayStyle (arr) {
+			var arr2 = new Array(m+l);
+			for (var i = 0; i < m+l; i++) {
+				arr2[i] = new Array(m+l);
+			}
+
+			for (var i = 0; i < m+l; i++) {
+				for (var j = 0; j < m+l; j++) {
+					if(i>j){
+						arr2[i][j]='pod';
+					} else{
+						if(i<j){
+							arr2[i][j]='nad';
+						}
+						else {
+							arr2[i][j]='diag';
+						}
+					}
+				}
+			}
+
+			for (var i = 0; i < m+l; i++) {
+				for (var j = 0; j < m+l; j++) {
+					if(i>j){
+						if(arr[i][j]==0){
+							arr2[i][j]='laserOn';
+						} else {
+							if( (l<= i && i<m) || (l<= j && j<m) ){
+								arr2[i][j]='laserOff';
+							}
+						}  
+					}
+					
+				}
+			}
+
+			for (var i = 0; i < m; i++) {
+				for (var j = 0; j < i; j++) {
+						var problem = true;
+				
+						for (var k = 0; k < l+1; k++) {
+						if(arr[i+k][j+k]==1){
+							problem = false;							
+						}						
+					}
+					
+					if(problem) {
+							for (var k = 0; k < l+1; k++) {
+							arr2[i+k][j+k] = 'zak';
+						}
+						arr2[i][j] = 'zak_zac';
+					}
+				}
+			} 
+
+			
+			return arr2;
+		}
+	
+		function printTableHTML() {
+			
+			arr = createArray();
+			arr2 = createArrayStyle(arr);
+		
+			/*document.write('m = '+m+'<br />');
+			document.write('seed = '+seed+'<br />');
+			document.write('s = '+s+'<br />');
+			document.write('l = '+l+'<br />');*/
+
+			var first = getUrlVars()["id"];
+			//var first = 1;
+			document.write('<table class="tab2">');
+
+			document.write('<tr><td></td><td></td>');
+			for(var i = 0; i < m+l; i++){
+				document.write('<td>');
+				if(i<m){
+					document.write(i);
+				}
+				document.write('</td>');
+			}
+			document.write('</tr>');
+			
+			for(var i = 0; i < m+l; i++){
+				document.write('<tr>');
+				
+
+				if(i==l-1){
+					document.write('<td class="lev" id="prv">');
+				} else {
+					document.write('<td class="lev">');
+				}
+				
+				if(l<=i && i<=m ){
+					if(seed.charAt(i-l)=='-'){
+						seed2 = seed.substr(0,i-l) + '#' + seed.substr(i+1-l);
+					} else {
+						seed2 = seed.substr(0,i-l) + '-' + seed.substr(i+1-l);
+					}
+
+					document.write('<a href="?seed='+encodeURIComponent(seed2)+'&m='+m+'#prv">')					
+					document.write(seed.charAt(i-l));
+					document.write('</a>')					
+				}
+				document.write('</td>');
+				document.write('<td>');
+				if(i<m){
+					document.write(i);
+				}
+				document.write('</td>');
+				
+				for(var j = 0; j < m+l; j++){
+					document.write('<td title="(' + j + ',' + i + ')" class="'+arr2[i][j]+'">' + (arr[i][j] == 0 ? '#' : '-') + '</td>');
+				}
+				document.write('</tr>');
+			}
+			document.write('</table>');
+		}
+		
+		function printTableTEX() {
+		
+			document.write("<h2>LaTeX export</h2><div class=\"latexsource\">\n");
+			
+			arr = createArray();
+			arr2 = createArrayStyle(arr);
+		
+
+			var first = getUrlVars()["id"];
+			//var first = 1;
+			
+			document.write('\\newcommand{\\alertPD}[1]{#1} <br /> \\newcommand{\\diag}[1]{#1}<br />');
+			document.write('\\newcommand{\\J}{\\texttt{-}}<br />\\newcommand{\\F}{\\texttt{\\#}}<br /><br />');
+			
+			document.write('\\begin{tabular}{p{0.12cm}p{0.12cm}||');
+			for(var j = 0; j < m+l; j++){
+				document.write('p{0.12cm}');
+				if(j==l-1 || j==m-1){
+					document.write('|');
+				}
+			}
+			document.write('}<br />~');
+
+			
+			for(var j = 0; j <= m+l; j++){
+				if(2 <= j && j <= m+1){
+					document.write('$'+(j-2)+'$');
+				}
+				document.write('&');
+			}
+
+			document.write('\\\\ <br />');
+			document.write("&");
+			for(var i = 0; i < m+l; i++) {
+				document.write("&");
+				if(l<=i && i<m){
+					document.write(seed.charAt(i-l)=='#' ? '\\F' : '\\J');
+				}
+			}
+
+
+			
+			document.write('\\\\ \\hline\\hline<br />');
+			for(var i = 0; i < m+l; i++) {
+				if(i<m){
+					document.write("$" + (i) + "$");
+				}
+				document.write("&");
+
+				if(l<=i && i<m){
+					document.write(seed.charAt(i-l)=='#' ? '\\F' : '\\J');
+				}
+				
+				for(var j = 0; j < m+l; j++){
+	  				document.write('&');
+					//if(i >= j && (!(i>=m && j < l))) {
+					var dod = (i==j  ? '\\diag' : '');
+					if(arr2[i][j]=='zak'){
+						dod = '\\alertPD';
+					}
+					if(arr2[i][j]=='zak_zac'){
+						dod = '\\alertPDb';
+					}
+					
+					var toPrint = dod + '{'+(arr[i][j] == 0 ? "\\F" : "\\J")+'}';
+					//}
+					//else {
+					//	toPrint = ' ';
+					//}
+					document.write(toPrint);
+				}
+				document.write('\\\\');
+				if(i==m-1 || i==l-1){
+					document.write('\\hline');
+				}
+				document.write('<br />');
+			}
+			document.write('\\end{tabular}</div>');
+		}
+		
+		function printForm() {
+			seed2 = "";
+			for(var j = 0; j < s; j++){
+					seed2 += "-";
+			}
+
+		
+		
+			document.write('<form action="" method="get">');
+			document.write('	<table class="form_tab">');
+			document.write('		<tr>');
+			document.write('			<td>Seed=</td>');
+			document.write('			<td colspan="2"><input name="seed" value="' + seed +'" class="inp1" /></td>');
+			document.write('		</tr>');
+			document.write('		<tr>');
+			document.write('			<td class="form_col1"><em>m</em>=</td>');
+			document.write('			<td class="form_col2"><input name="m" value="' + m + '" class="inp2" />, <em>&#x2113;</em>=' + (m-s) + ', <em>s</em>=' + s + '</td>');
+			document.write('			<td class="form_col3"><a href="?seed='+encodeURIComponent(seed)+'&m='+(m+1)+'">Increment <em>m</em></a> <a href="?seed='+encodeURIComponent(seed)+'&m='+(m-1)+'">Decrement <em>m</em></a> <a href="?seed='+encodeURIComponent(seed2)+'&m='+m+'#prv">Clear</a> </td>');
+			document.write('		</tr>');
+			document.write('		<tr>');
+			document.write('			<td></td><td></td>');
+			document.write('			<td><a href="?seed='+encodeURIComponent(seed)+'-&m='+(m+1)+'">Increment <em>m</em> and <em>s</em> (keep <em>&#x2113;</em>)</a> <a href="?seed='+encodeURIComponent(seed.substring(0, seed.length - 1))+'&m='+(m-1)+'">Decrement <em>m</em> and <em>s</em> (keep <em>&#x2113;</em>)</a> </td>');
+			document.write('		</tr>');
+			document.write('		<tr>');
+			document.write('			<td></td>');
+			document.write('			<td><input type="submit" value="Generate" />  </td><td> <input type="checkbox" name="latex" value="latex" /> Export to LaTeX</td>');
+			document.write('		</tr>');
+			document.write('	</table>');
+			document.write('</form>');
+		}
+	</script>
+</head>
+
+<body>
+	<h1>&ldquo;Laser method&rdquo; on-line</h1>
+	
+	
+	<h2>Introduction</h2>
+	<p>
+		The &ldquo;Laser method&rdquo; is intended for lossless seeds design.
+		It can be used for verification that a given seed <em>Q</em> solves a given <em>(m,2)</em>-problem which means that the pattern given by <em>Q</em> must be shared between two strings of length <em>m</em> in Hamming distance <em>2</em>.
+		As it was proven in <a href="#dipl">[1]</a>, <em>Q</em> solves the problem if and only
+		if the table below does not 
+		contain diagonally a string of <em>(&#x2113; + 1)</em> &ldquo;matching position symbols&rdquo; &#35;.
+		
+		By <em>&#x2113;</em> we denote the seed margin (<em>m - </em> &lsquo;seed length&rsquo;).
+		More information about the Laser method can be found in my diploma work:
+		<ul style="list-style-type:none">
+		<li>
+			<span style="border: dashed #ff5555 1px" id="dipl">
+			<strong>[1]</strong>
+			K. B&#345;inda.
+			<strong>Lossless seeds for approximate string matching</strong>,
+			diploma thesis (supervisors:
+			<a href="http://www.kloudak.eu/">K.&nbsp;Klouda</a> and
+			<a href="http://www-igm.univ-mlv.fr/~koutcher/">G.&nbsp;Kucherov)</a>, <em>Czech Technical University in Prague</em>, Czech Republic, 2013. Available at <a href="http://brinda.cz/publications/diplomka.pdf">http://brinda.cz/publications/diplomka.pdf</a>.
+			</span>
+		</li>
+		</ul>
+	</p>
+	
+	<h2>Parameters</h2>
+
+	<script language="JavaScript">
+		printForm();
+		document.write('<h2>Generated table</h2>');
+		printTableHTML();
+		if(latex){
+			printTableTEX();
+		}
+	</script>
+</body>
